@@ -1,0 +1,480 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -760,
+        -320
+      ],
+      "id": "f98867ce-8a16-44ee-b087-aec08fef6e01",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Grupo Mentes Autônomas - Atividade Obrigatória - 2025-06-18\n\nA atividade tem por objetivo criar um ou mais agentes que tornem possível a um usuário realizar perguntas sobre os arquivos CSV disponibilizados.\n\nPor exemplo: Qual é o fornecedor que teve maior montante recebido? Qual item teve maior volume entregue (em quantidade)? E assim por diante.",
+        "options": {
+          "responseMode": "responseNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        100
+      ],
+      "id": "b34525dd-483a-4e51-9f6b-b56769659f88",
+      "name": "When chat message received",
+      "webhookId": "f84fb69c-a680-45b0-8da2-59f6f7c3a55d"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Dado o seguinte conjunto de dados JSON com notas fiscais:\n\nEste JSON possui os seguintes campos:\n{{ $node[\"gera_consultas\"].json.quantidadeFornecedoresEmitentesUnicos }} = \"quantidadeFornecedoresEmitentesUnicos\" = Quantidade de fornecedores ou emitentes, \n{{ $node[\"gera_consultas\"].json.quantidadeNotasFiscaisUnicas }} = \"quantidadeNotasFiscaisUnicas\" = Quantidade de notas fiscais, \n{{ $node[\"gera_consultas\"].json.somaValorNotaFiscal }} = \"somaValorNotaFiscal\" = Soma do valor total de todas as notas.\n\n{{ $node[\"gera_consultas\"].json.maiorMontanteFornecedor.cnpj }} = Contendo cnpj do maior fornecedor\n{{ $node[\"gera_consultas\"].json.maiorMontanteFornecedor.nome }} = Contendo nome do maior fornecedor\n{{ $node[\"gera_consultas\"].json.maiorMontanteFornecedor.total }} = Contendo valor total do montante do maior fornecedor\n\n{{ $node[\"gera_consultas\"].json.maiorVolumeItem.descricaoProduto }} = Contendo a descrição do produto/item mais fornecido/entregue em quantidade\n{{ $node[\"gera_consultas\"].json.maiorVolumeItem.volume }} = Contendo a quantidade do produto mais fornecido\n\nSua tarefa é responder apenas a pergunta fornecida pelo usuário: \"{{ $node[\"pergunta_chat\"].json.chatInput }}\"\n\nLógicas importantes:\n1. Se a pergunta estiver relacionada a \"quantidade de notas fiscais\", responda com \"quantidadeNotasFiscaisUnicas\".\n2. Se a pergunta estiver relacionada a \"quantidade de fornecedores\" ou \"emitentes\", responda com \"quantidadeFornecedoresEmitentesUnicos\".\n3. Se a pergunta estiver relacionada a \"valor das notas fiscais\", responda com \"somaValorNotaFiscal\".\n4. As respostas devem ser diretas e objetivas, usando apenas os dados disponíveis no JSON.\n5. Se não encontrar a resposta nos valores disponíveis nos campos, informe ao usuário que não possui essa informação disponível. \n6. Se for perguntado sobre o que consegue responder, informe que você é um assistente capaz de responder sobre as seguintes informações: Quantidade de fornecedores ou emitentes, Quantidade de notas fiscais, Soma do valor total de todas as notas, Maior fornecedor/emitente em valor, Produto mais entregue/fornecido pro quantidade\n\nExemplo de perguntas e respostas:\n- Pergunta: \"Quantos fornecedores únicos existem no conjunto de dados?\"\n  Resposta: \"A quantidade de fornecedores/emitentes é 35.\"\n  \n- Pergunta: \"Quantas notas foram emitidas?\"\n  Resposta: \"Foram emitidas 3 notas.\"\n\n- Pergunta: \"Qual é o valor da soma de todas as notas fiscais?\"\n  Resposta: \"O valor total das notas fiscais emitidas é R$ 250,75.\"\n  \n- Pergunta: \"Qual é o valor total das notas fiscais emitidas?\"\n  Resposta: \"O valor total das notas fiscais emitidas é R$ 250,75.\"\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        520,
+        280
+      ],
+      "id": "d73336cc-51cb-4ee3-abed-633150a475cf",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://drive.google.com/uc?export=download&id=1jaNl2kL-a32HO_jXH3g3J1mGHzHWm9YD",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -280,
+        -200
+      ],
+      "id": "bd50399a-6c10-4da2-b4af-532c064d9f91",
+      "name": "Pega o ZIP com CSVs",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        -60,
+        -200
+      ],
+      "id": "93fef743-e67a-49ad-8a52-42fed0c6ea6a",
+      "name": "Descompacta o ZIP"
+    },
+    {
+      "parameters": {
+        "jsCode": "let results = [];\nfor (const item of $input.all()) {\n  for (const key of Object.keys(item.binary || {})) {\n    results.push({\n      json: { fileName: item.binary[key].fileName },\n      binary: { data: item.binary[key] },\n    });\n  }\n}\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -200
+      ],
+      "id": "52b4a34a-9498-4185-817c-035ab050ceb7",
+      "name": "Separa os arquivos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5a5041dd-4a7a-4ad2-8624-2ce4b0ae9ec3",
+              "leftValue": "={{ $json.fileName }}",
+              "rightValue": "202401_NFs_Cabecalho.csv",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        380,
+        -200
+      ],
+      "id": "523b35a1-e863-4cdc-9847-0a10193cd236",
+      "name": "Direciona cada arquivo para conversão"
+    },
+    {
+      "parameters": {
+        "options": {
+          "delimiter": ","
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -320
+      ],
+      "id": "b183d1a5-8301-4210-ba97-07c7ee994721",
+      "name": "Converte cabeçalho para JSON"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -40
+      ],
+      "id": "e170db32-8555-48a5-9665-7b67fc6ba20a",
+      "name": "Converte itens para JSON"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "CHAVE DE ACESSO",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        820,
+        -180
+      ],
+      "id": "1f347a95-5fcf-4349-9366-4e96337d2194",
+      "name": "dados_unificados"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        -180
+      ],
+      "id": "8b8b4aa3-ce68-4225-8070-9b4d8cbeb31c",
+      "name": "notas_fiscais"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -540,
+        20
+      ],
+      "id": "8ad8cb70-f22b-4b62-8224-4fca37d282b8",
+      "name": "pergunta_chat"
+    },
+    {
+      "parameters": {
+        "operation": "xls",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        -360
+      ],
+      "id": "bfe2d72f-ab0b-478d-aa1c-a4e27ad5d551",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const notasFiscais = $input.all().map(item => item.json);\n\n// Variável para armazenar o total das notas fiscais\nlet somaValorNotaFiscal = 0;\n// Criar um conjunto para armazenar as CHAVE DE ACESSO únicas\nconst chavesDeAcessoUnicas = new Set();\n// Criar um conjunto para armazenar os 'CPF/CNPJ Emitente' únicos\nconst cpfsCnpjsEmitenteUnicos = new Set();\n// Variável para armazenar o total por fornecedor\nconst totalPorFornecedor = {};\n// Objeto para armazenar a soma de quantidades por descrição de produto\nconst volumePorItem = {};\n\n// Operação de soma\nfor (const nota of notasFiscais) {\n  const cnpjEmitente = nota[\"CPF/CNPJ Emitente\"];\n  const nomeEmitente = nota[\"RAZÃO SOCIAL EMITENTE\"];\n  const valorNotaFiscal = parseFloat(nota[\"VALOR NOTA FISCAL\"]) || 0;\n  const descricaoProduto = nota[\"DESCRIÇÃO DO PRODUTO/SERVIÇO\"];\n  const quantidadeProduto = parseFloat(nota[\"QUANTIDADE\"]) || 0;\n  somaValorNotaFiscal += valorNotaFiscal;\n\n  chavesDeAcessoUnicas.add(nota[\"CHAVE DE ACESSO\"]);\n  cpfsCnpjsEmitenteUnicos.add(nota[\"CPF/CNPJ Emitente\"]);\n\n  if (!totalPorFornecedor[cnpjEmitente]) {\n    totalPorFornecedor[cnpjEmitente] = { nome: nomeEmitente, total: 0 };\n  }\n  totalPorFornecedor[cnpjEmitente].total += valorNotaFiscal;\n\n  if (!volumePorItem[descricaoProduto]) {\n    volumePorItem[descricaoProduto] = 0;\n  }\n  volumePorItem[descricaoProduto] += quantidadeProduto;\n}\n\n// Contagem de notas fiscais únicas\nconst quantidadeNotasFiscaisUnicas = chavesDeAcessoUnicas.size;\n// Contagem de 'CPF/CNPJ Emitente' únicos\nconst quantidadeFornecedoresEmitentesUnicos = cpfsCnpjsEmitenteUnicos.size;\n\n// Identifica o fornecedor com o maior montante recebido\nlet maiorMontanteFornecedor = { cnpj: \"\", nome: \"\", total: 0 };\nfor (const cnpj in totalPorFornecedor) {\n  const { nome, total } = totalPorFornecedor[cnpj];\n  if (total > maiorMontanteFornecedor.total) {\n    maiorMontanteFornecedor = { cnpj, nome, total };\n  }\n}\n\n// Identifica o item com o maior volume entregue\nlet maiorVolumeItem = { descricaoProduto: \"\", volume: 0 };\n\n// Itera sobre os itens para encontrar o maior volume\nfor (const descricaoProduto in volumePorItem) {\n  if (volumePorItem[descricaoProduto] > maiorVolumeItem.volume) {\n    maiorVolumeItem = { descricaoProduto, volume: volumePorItem[descricaoProduto] };\n  }\n}\n\n// Retorna o total calculado\nreturn {\n  json: {\n    somaValorNotaFiscal,\n    quantidadeNotasFiscaisUnicas,\n    quantidadeFornecedoresEmitentesUnicos,\n    maiorMontanteFornecedor,\n    maiorVolumeItem\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        80
+      ],
+      "id": "5921a9eb-fcf6-446e-a0f8-792bf6c4e811",
+      "name": "gera_consultas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33566d30-e990-4276-8480-c3dd52ab6d51",
+              "name": "message.content",
+              "value": "={{ $json[\"message\"].content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        280
+      ],
+      "id": "d474852a-163e-43a8-b4c2-a70bc9860088",
+      "name": "resposta_llm"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message.content.toJsonString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1160,
+        300
+      ],
+      "id": "ed570740-0640-4402-98fd-66fe5dfafba9",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Pega o ZIP com CSVs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "pergunta_chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega o ZIP com CSVs": {
+      "main": [
+        [
+          {
+            "node": "Descompacta o ZIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descompacta o ZIP": {
+      "main": [
+        [
+          {
+            "node": "Separa os arquivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa os arquivos": {
+      "main": [
+        [
+          {
+            "node": "Direciona cada arquivo para conversão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Direciona cada arquivo para conversão": {
+      "main": [
+        [
+          {
+            "node": "Converte cabeçalho para JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Converte itens para JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Converte cabeçalho para JSON": {
+      "main": [
+        [
+          {
+            "node": "dados_unificados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Converte itens para JSON": {
+      "main": [
+        [
+          {
+            "node": "dados_unificados",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "dados_unificados": {
+      "main": [
+        [
+          {
+            "node": "notas_fiscais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "notas_fiscais": {
+      "main": [
+        [
+          {
+            "node": "gera_consultas",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pergunta_chat": {
+      "main": [
+        [
+          {
+            "node": "Pega o ZIP com CSVs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        []
+      ]
+    },
+    "gera_consultas": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "resposta_llm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "resposta_llm": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ca7b3c8a-4f03-4e3e-b7a9-87f6b0d94913",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1d969076ddf556acb884c7532cf8ea7aa20d87ae01401312986a0c69c794e497"
+  },
+  "id": "0rIBWyex6zalc10Y",
+  "tags": []
+}
